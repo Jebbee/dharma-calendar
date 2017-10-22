@@ -5,8 +5,7 @@ class DharmaEvent {
     String title
     String instructor
     String location
-    URL link
-
+    URI link
 
     @Override
     String toString() {

@@ -18,13 +18,13 @@ class SpiritRockDharmaEventParser implements DharmaEventParser {
         Collection<NodeChild> eventNodes = getEventNodes()
 
         eventNodes.eachWithIndex { NodeChild eventNode, int index ->
-            def eventNodeText = eventNode.text()
+            String eventNodeText = eventNode.text()
 
             if (index % 2 == 0) {
                 dharmaEvents << new DharmaEvent(
                         date: new SimpleDateFormat('M/d/yyyy').parse(eventNodeText),
                         location: 'Spirit Rock',
-                        link: new URL(SPIRIT_ROCK_HOME_URL_STRING + eventNode.@href.toString()))
+                        link: new URI(SPIRIT_ROCK_HOME_URL_STRING + eventNode.@href.toString()))
             } else {
                 dharmaEvents.last().title = eventNodeText
             }
@@ -36,7 +36,7 @@ class SpiritRockDharmaEventParser implements DharmaEventParser {
     private static Collection<NodeChild> getEventNodes() {
         def htmlParser = new XmlSlurper(new Parser()).parse(SPIRIT_ROCK_ALL_EVENTS_CALENDAR_URL_STRING)
 
-        return htmlParser.'**'.findAll {
+        htmlParser.'**'.findAll {
             it.name() == 'a' && it.@href.toString().startsWith('/calendarDetails?EventID=')
         }
     }

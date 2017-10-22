@@ -6,4 +6,4 @@ Used to collect multiple Dharma talk calendars
 
 * Spirit Rock
     * [ ] Follow pagination to get all events
-    * [ ] Get inst
+    * [ ] Get instructor
