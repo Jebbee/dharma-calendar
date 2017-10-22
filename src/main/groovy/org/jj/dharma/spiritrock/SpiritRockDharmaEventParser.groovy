@@ -2,12 +2,10 @@ package org.jj.dharma.spiritrock
 
 import groovy.util.slurpersupport.GPathResult
 import groovy.util.slurpersupport.NodeChild
-import org.ccil.cowan.tagsoup.Parser
 import org.jj.dharma.calendar.DharmaEvent
 import org.jj.dharma.calendar.DharmaEventParser
 
-import java.text.DateFormat
-import java.text.SimpleDateFormat
+import static org.jj.dharma.util.XmlSlurperHelper.findAll
 
 class SpiritRockDharmaEventParser implements DharmaEventParser {
 
@@ -17,28 +15,29 @@ class SpiritRockDharmaEventParser implements DharmaEventParser {
 
     List<DharmaEvent> parse() {
         List<DharmaEvent> dharmaEvents = []
-        DateFormat dateFormat = new SimpleDateFormat('M/d/yyyy')
 
         getEventNodes().eachWithIndex { NodeChild eventNode, int index ->
             String eventNodeText = eventNode.text()
 
             if (isNewEvent(index)) {
-                URI eventDetailsUri = new URI(SPIRIT_ROCK_HOME_URL_STRING + eventNode.@href.toString())
-
-                DharmaEvent dharmaEvent = new DharmaEvent(
-                        date: dateFormat.parse(eventNodeText),
-                        location: SPIRIT_ROCK_LOCATION_NAME,
-                        link: eventDetailsUri)
-
-                populateEventDetails(dharmaEvent, eventDetailsUri)
-
-                dharmaEvents << dharmaEvent
-            } else {
-                dharmaEvents.last().title = eventNodeText
+                dharmaEvents << createNewDharmaEvent(eventNode, eventNodeText)
             }
         }
 
         return dharmaEvents
+    }
+
+    private static DharmaEvent createNewDharmaEvent(NodeChild eventNode, String eventNodeText) {
+        URI eventDetailsUri = new URI(SPIRIT_ROCK_HOME_URL_STRING + eventNode.@href.toString())
+
+        DharmaEvent dharmaEvent = new DharmaEvent(
+                date: Date.parse('M/d/yyyy', eventNodeText),
+                location: SPIRIT_ROCK_LOCATION_NAME,
+                link: eventDetailsUri)
+
+        populateEventDetails(dharmaEvent, eventDetailsUri)
+
+        return dharmaEvent
     }
 
     private static void populateEventDetails(DharmaEvent dharmaEvent, URI eventDetailsUri) {
@@ -55,17 +54,13 @@ class SpiritRockDharmaEventParser implements DharmaEventParser {
     }
 
     private static Collection<NodeChild> getEventDetailNodes(URI eventDetailsUri) {
-        GPathResult htmlContent = new XmlSlurper(new Parser()).parse(eventDetailsUri.toString())
-
-        return htmlContent.'**'.findAll {
+        return findAll(eventDetailsUri.toString()) {
             it.name() == 'table' && it.@class.toString() == 'formborders'
         }
     }
 
     private static Collection<NodeChild> getEventNodes() {
-        GPathResult htmlContent = new XmlSlurper(new Parser()).parse(SPIRIT_ROCK_ALL_EVENTS_CALENDAR_URL_STRING)
-
-        return htmlContent.'**'.findAll {
+        return findAll(SPIRIT_ROCK_ALL_EVENTS_CALENDAR_URL_STRING) {
             it.name() == 'a' && it.@href.toString().startsWith('/calendarDetails?EventID=')
         }
     }
