@@ -20,7 +20,7 @@ class SpiritRockDharmaEventParser implements DharmaEventParser {
         eventNodes.eachWithIndex { NodeChild eventNode, int index ->
             String eventNodeText = eventNode.text()
 
-            if (index % 2 == 0) {
+            if (isNewEvent(index)) {
                 dharmaEvents << new DharmaEvent(
                         date: new SimpleDateFormat('M/d/yyyy').parse(eventNodeText),
                         location: 'Spirit Rock',
@@ -30,15 +30,19 @@ class SpiritRockDharmaEventParser implements DharmaEventParser {
             }
         }
 
-        dharmaEvents
+        return dharmaEvents
     }
 
     private static Collection<NodeChild> getEventNodes() {
-        def htmlParser = new XmlSlurper(new Parser()).parse(SPIRIT_ROCK_ALL_EVENTS_CALENDAR_URL_STRING)
+        def xmlSlurper = new XmlSlurper(new Parser()).parse(SPIRIT_ROCK_ALL_EVENTS_CALENDAR_URL_STRING)
 
-        htmlParser.'**'.findAll {
+        return xmlSlurper.'**'.findAll {
             it.name() == 'a' && it.@href.toString().startsWith('/calendarDetails?EventID=')
         }
+    }
+
+    private static boolean isNewEvent(int index) {
+        return index % 2 == 0
     }
 
 }
