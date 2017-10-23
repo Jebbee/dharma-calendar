@@ -5,34 +5,44 @@ import groovy.util.slurpersupport.NodeChild
 import org.jj.dharma.calendar.DharmaEvent
 import org.jj.dharma.calendar.DharmaEventParser
 
+import static org.jj.dharma.util.XmlSlurperHelper.find
 import static org.jj.dharma.util.XmlSlurperHelper.findAll
 
 class SpiritRockDharmaEventParser implements DharmaEventParser {
 
-    public static final String SPIRIT_ROCK_LOCATION_NAME = 'Spirit Rock'
-    public static final String SPIRIT_ROCK_HOME_URL_STRING = "https://spiritrock.org"
-    public static final String SPIRIT_ROCK_ALL_EVENTS_CALENDAR_URL_STRING = SPIRIT_ROCK_HOME_URL_STRING + "/all-events-calendar"
+    private static final String LOCATION_NAME = 'Spirit Rock'
+    private static final String HOME_URL_STRING = "https://spiritrock.org"
+    private static final String ALL_EVENTS_CALENDAR_URL_STRING = HOME_URL_STRING + "/all-events-calendar"
+    private static final String ALL_EVENTS_CALENDAR_PAGE_N_URL_STRING_PREFIX = ALL_EVENTS_CALENDAR_URL_STRING + '?CalendarPage='
 
     List<DharmaEvent> parse() {
         List<DharmaEvent> dharmaEvents = []
 
-        getEventNodes().eachWithIndex { NodeChild eventNode, int index ->
+        int numberOfCalendarPages = getNumberOfCalendarPages()
+
+        for (int pageNumber = 0; pageNumber < numberOfCalendarPages; pageNumber++) {
+            addDharmaEventsFromPage(dharmaEvents, pageNumber)
+        }
+
+        return dharmaEvents
+    }
+
+    private static void addDharmaEventsFromPage(List<DharmaEvent> dharmaEvents, int pageNumber) {
+        getEventNodesFromPage(pageNumber).eachWithIndex { NodeChild eventNode, int index ->
             String eventNodeText = eventNode.text()
 
             if (isNewEvent(index)) {
                 dharmaEvents << createNewDharmaEvent(eventNode, eventNodeText)
             }
         }
-
-        return dharmaEvents
     }
 
     private static DharmaEvent createNewDharmaEvent(NodeChild eventNode, String eventNodeText) {
-        URI eventDetailsUri = new URI(SPIRIT_ROCK_HOME_URL_STRING + eventNode.@href.toString())
+        URI eventDetailsUri = new URI(HOME_URL_STRING + eventNode.@href.toString())
 
         DharmaEvent dharmaEvent = new DharmaEvent(
                 date: Date.parse('M/d/yyyy', eventNodeText),
-                location: SPIRIT_ROCK_LOCATION_NAME,
+                location: LOCATION_NAME,
                 link: eventDetailsUri)
 
         populateEventDetails(dharmaEvent, eventDetailsUri)
@@ -49,7 +59,7 @@ class SpiritRockDharmaEventParser implements DharmaEventParser {
             dharmaEvent.dateDescription = tableChildren[2]
             dharmaEvent.locationDescription = tableChildren[3]
             dharmaEvent.cost = tableChildren[4]
-            dharmaEvent.details = tableChildren[5]
+            dharmaEvent.details = tableChildren[5].toString().trim()
         }
     }
 
@@ -59,10 +69,18 @@ class SpiritRockDharmaEventParser implements DharmaEventParser {
         }
     }
 
-    private static Collection<NodeChild> getEventNodes() {
-        return findAll(SPIRIT_ROCK_ALL_EVENTS_CALENDAR_URL_STRING) {
+    private static Collection<NodeChild> getEventNodesFromPage(int pageNumber) {
+        return findAll(ALL_EVENTS_CALENDAR_PAGE_N_URL_STRING_PREFIX + pageNumber) {
             it.name() == 'a' && it.@href.toString().startsWith('/calendarDetails?EventID=')
         }
+    }
+
+    private static int getNumberOfCalendarPages() {
+        NodeChild nodeChild = find(ALL_EVENTS_CALENDAR_URL_STRING) {
+            it.name() == 'select' && it.@id.toString() == 'PC12156_ctl00_DropDownList1'
+        }
+
+        return nodeChild.children().size()
     }
 
     private static boolean isNewEvent(int index) {

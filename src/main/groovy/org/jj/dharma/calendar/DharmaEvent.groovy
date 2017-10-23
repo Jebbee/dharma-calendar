@@ -11,18 +11,19 @@ class DharmaEvent {
     String details
     URI link
 
+    // TODO Remove temp toString()
     @Override
     String toString() {
         return "DharmaEvent{" +
                 "date=" + date +
-                ", dateDescription='" + dateDescription + '\'' +
-                ", title='" + title + '\'' +
-                ", teachers='" + teachers + '\'' +
-                ", location='" + location + '\'' +
-                ", locationDescription='" + locationDescription + '\'' +
-                ", cost='" + cost + '\'' +
-                ", details='" + details + '\'' +
-                ", link=" + link +
+                "\n\tdateDescription='" + dateDescription + '\'' +
+                "\n\ttitle='" + title + '\'' +
+                "\n\tteachers='" + teachers + '\'' +
+                "\n\tlocation='" + location + '\'' +
+                "\n\tlocationDescription='" + locationDescription + '\'' +
+                "\n\tcost='" + cost + '\'' +
+                "\n\tdetails='" + details + '\'' +
+                "\n\tlink=" + link +
                 '}'
     }
 }
