@@ -7,5 +7,10 @@ Used to collect multiple Dharma talk calendars
 * [ ] Build front end
 * [ ] Host on https://www.heroku.com
 * Spirit Rock
-    * [ ] Follow pagination to get all events
     * [ ] Filter out past events(?)
+* [ ] Scrape other sites
+    * Insight Meditation (Redwood City)
+    * Insight Meditation (Berkeley)
+    * SF Zen Center
+    * Green Gulch
+    * Etc
