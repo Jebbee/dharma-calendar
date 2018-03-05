@@ -13,4 +13,6 @@ Used to collect multiple Dharma talk calendars
     * Insight Meditation (Berkeley)
     * SF Zen Center
     * Green Gulch
+    * Marin Sangha
+        * http://marinsangha.org/index.php
     * Etc
